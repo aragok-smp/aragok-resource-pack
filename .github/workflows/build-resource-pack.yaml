@@ -1,0 +1,91 @@
+name: Build & Release Resource Pack
+
+on:
+  push:
+    branches: 
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: resource-pack-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Prepare metadata (tag, names, repo)
+        id: meta
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          TAG="aragokt-$(date -u +%Y%m%d-%H%M)-$SHORT_SHA"
+          ZIP="aragokt-${SHORT_SHA}.zip"
+          REPO="${GITHUB_REPOSITORY}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+
+      - name: Create ZIP of resource pack
+        # Adjust exclusions if you keep extra files in the repo.
+        run: |
+          set -euo pipefail
+          test -f pack.mcmeta || { echo "pack.mcmeta not found at repo root"; exit 1; }
+          zip -r "${{ steps.meta.outputs.zip }}" . \
+            -x ".git/*" \
+               ".github/*" \
+               "*.md" \
+               "LICENSE" \
+               "LICENSE.*" \
+               "README*" \
+               "*.psd" "*.xcf" \
+               ".DS_Store"
+
+      - name: Compute SHA-1 (Minecraft server.properties)
+        id: hash
+        run: |
+          set -euo pipefail
+          SHA1="$(sha1sum "${{ steps.meta.outputs.zip }}" | awk '{print $1}')"
+          echo "sha1=$SHA1" >> "$GITHUB_OUTPUT"
+          echo "$SHA1" > "${{ steps.meta.outputs.zip }}.sha1"
+          echo "$SHA1  ${{ steps.meta.outputs.zip }}" > "${{ steps.meta.outputs.zip }}.sha1sum"
+          echo "resource-pack-sha1=$SHA1" > resource-pack-server.properties.snippet
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Resource Pack ${{ steps.meta.outputs.tag }}
+          draft: false
+          prerelease: false
+          body: |
+            **Minecraft Resource Pack Release**
+
+            **SHA-1 (for `server.properties`):**
+            ```
+            ${{ steps.hash.outputs.sha1 }}
+            ```
+
+            **Direct download URL (use in `server.properties` as `resource-pack=`):**
+            ```
+            https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.meta.outputs.tag }}/${{ steps.meta.outputs.zip }}
+            ```
+
+            **server.properties snippet:**
+            ```
+            # Let clients auto-download the pack
+            resource-pack=https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.meta.outputs.tag }}/${{ steps.meta.outputs.zip }}
+            resource-pack-sha1=${{ steps.hash.outputs.sha1 }}
+            ```
+
+            _Note:_ `resource-pack-sha1` must be **SHA-1** of the ZIP. This release includes both the ZIP and the hash files.
+          files: |
+            ${{ steps.meta.outputs.zip }}
+            ${{ steps.meta.outputs.zip }}.sha1
+            ${{ steps.meta.outputs.zip }}.sha1sum
+            resource-pack-server.properties.snippet
