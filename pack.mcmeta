@@ -1,0 +1,11 @@
+{
+  "pack": {
+    "description": "Aragokt Custom Resources",
+    "pack_format": 64
+  },
+  "features": {
+    "enabled": [
+      "minecraft:vanilla"
+    ]
+  }
+}
