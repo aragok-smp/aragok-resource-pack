@@ -2,7 +2,7 @@ name: Build & Release Resource Pack
 
 on:
   push:
-    branches: 
+    branches:
       - main
 
 permissions:
@@ -37,6 +37,7 @@ jobs:
           zip -r "${{ steps.meta.outputs.zip }}" . \
             -x ".git/*" \
                ".github/*" \
+               "sources/*" \
                "*.md" \
                "LICENSE" \
                "LICENSE.*" \
