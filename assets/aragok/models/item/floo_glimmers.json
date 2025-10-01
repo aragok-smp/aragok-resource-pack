@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "aragokt:item/supercharged_coal"
+    "layer0": "aragok:item/floo_glimmers"
   }
 }

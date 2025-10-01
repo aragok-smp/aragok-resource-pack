@@ -19,14 +19,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Bump Tag
+        id: bump
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_PREFIX: v
+          RELEASE_BRANCHES: main
+          DEFAULT_BUMP: patch
+
       - name: Prepare Metadata
         id: meta
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
-          TAG="aragokt-$(date -u +%Y%m%d-%H%M)-$SHORT_SHA"
-          ZIP="aragokt-${SHORT_SHA}.zip"
+          ZIP="aragok-resource-pack-${{ steps.bump.outputs.new_tag }}.zip"
           REPO="${GITHUB_REPOSITORY}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
           echo "repo=$REPO" >> "$GITHUB_OUTPUT"
 
@@ -51,38 +57,27 @@ jobs:
           set -euo pipefail
           SHA1="$(sha1sum "${{ steps.meta.outputs.zip }}" | awk '{print $1}')"
           echo "sha1=$SHA1" >> "$GITHUB_OUTPUT"
-          echo "$SHA1" > "${{ steps.meta.outputs.zip }}.sha1"
-          echo "$SHA1  ${{ steps.meta.outputs.zip }}" > "${{ steps.meta.outputs.zip }}.sha1sum"
-          echo "resource-pack-sha1=$SHA1" > resource-pack-server.properties.snippet
 
       - name: Create GitHub Release
-        id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: ${{ steps.meta.outputs.tag }}
-          draft: false
-          prerelease: false
+          tag_name: ${{ steps.bump.outputs.new_tag }}
+          generate_release_notes: true
+          append_body: true
           body: |
-            **Minecraft Resource Pack Release**
+            **aragok Resource Pack Release**
 
             **Direct Download URL:**
             ```
-            https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.meta.outputs.tag }}/${{ steps.meta.outputs.zip }}
-            ```
-
-            **SHA-1:**
-            ```
-            ${{ steps.hash.outputs.sha1 }}
+            https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.bump.outputs.new_tag }}/${{ steps.meta.outputs.zip }}
             ```
 
             **server.properties:**
             ```
-            resource-pack=https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.meta.outputs.tag }}/${{ steps.meta.outputs.zip }}
+            resource-pack=https://github.com/${{ steps.meta.outputs.repo }}/releases/download/${{ steps.bump.outputs.new_tag }}/${{ steps.meta.outputs.zip }}
             resource-pack-sha1=${{ steps.hash.outputs.sha1 }}
             ```
           files: |
             ${{ steps.meta.outputs.zip }}
-            ${{ steps.meta.outputs.zip }}.sha1
-            ${{ steps.meta.outputs.zip }}.sha1sum
-            resource-pack-server.properties.snippet
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

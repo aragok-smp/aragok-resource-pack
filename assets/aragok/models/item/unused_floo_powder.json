@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "aragokt:item/floo_powder"
+    "layer0": "aragok:item/unused_floo_powder"
   }
 }

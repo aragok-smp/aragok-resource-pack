@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "aragokt:item/dev_null"
+    "layer0": "aragok:item/dev_null"
   }
 }

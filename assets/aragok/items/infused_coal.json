@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aragokt:item/unused_floo_powder"
+    "model": "aragok:item/infused_coal"
   }
 }
