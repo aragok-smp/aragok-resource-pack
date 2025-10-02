@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "aragokt:item/infused_coal"
+    "layer0": "aragok:item/enriched_coal"
   }
 }

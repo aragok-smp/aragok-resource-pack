@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aragokt:item/enriched_coal"
+    "model": "aragok:item/dev_null"
   }
 }

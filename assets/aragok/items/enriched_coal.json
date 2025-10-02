@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aragokt:item/infused_coal"
+    "model": "aragok:item/enriched_coal"
   }
 }
