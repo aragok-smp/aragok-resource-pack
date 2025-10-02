@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "aragok:item/floo_glimmers"
+    "layer0": "aragok:item/floo_essence"
   }
 }
